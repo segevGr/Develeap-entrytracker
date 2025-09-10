@@ -83,7 +83,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    name: publish
+    name: Publish
     needs: packaging_e2e_testing_and_deploy
     steps:
       - name: connection with ssh to ec2
