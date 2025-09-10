@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+    image: entrytracker:latest
+    ports:
+      - "80:5000"
+    networks:
+      - entryTracker-network
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - mysql
+  mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - entryTracker-network
+
+networks:
+  entryTracker-network:
+    name: entryTracker-network
+
+volumes:
+  mysql_data:

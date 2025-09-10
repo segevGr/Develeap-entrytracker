@@ -1,0 +1,77 @@
+name: entrytracker-ci
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  building_and_unit_testing:
+    runs-on: ubuntu-latest
+    name: Building and Unit Testing
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: install dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      - name: run app
+        run: python app.py &
+
+      - name: Testing
+        uses: nick-fields/retry@v3
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 5
+          timeout_seconds: 10
+          command: curl -s http://localhost:5000/ | grep current_entry
+
+  packaging_e2e_testing_and_deploy:
+    runs-on: ubuntu-latest
+    name: Packaging E2E Testing and Deploy
+    needs: building_and_unit_testing
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Building
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: entrytracker:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Docker Compose
+        run: docker compose up -d
+
+      - name: Testing
+        uses: nick-fields/retry@v3
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 5
+          timeout_seconds: 10
+          command: curl -s http://localhost:80/ | grep previous_entries
+
+      - name: cleanup
+        run: docker compose down
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Run push command
+        run: |
+          docker tag entrytracker:latest 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
+          docker push 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
