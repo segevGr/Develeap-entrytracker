@@ -102,6 +102,9 @@ jobs:
               docker rmi -f 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest || true
             fi
 
+            aws ecr get-login-password --region ap-south-1 \
+              | sudo docker login --username AWS --password-stdin 255731431095.dkr.ecr.ap-south-1.amazonaws.com
+
             docker pull 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
 
             docker run -d --name entrytracker \
