@@ -59,7 +59,7 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           max_attempts: 3
-          retry_wait_seconds: 5
+          retry_wait_seconds: 10
           timeout_seconds: 10
           command: curl -s http://localhost:80/ | grep previous_entries
 
@@ -80,3 +80,35 @@ jobs:
         run: |
           docker tag entrytracker:latest 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
           docker push 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
+
+  publish:
+    runs-on: ubuntu-latest
+    name: Packaging E2E Testing and Deploy
+    needs: packaging_e2e_testing_and_deploy
+    steps:
+      - name: connection with ssh to ec2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            if [ "$(docker ps -aq -f name=entrytracker)" ]; then
+              docker stop entrytracker || true
+              docker rm entrytracker || true
+            fi
+
+            if [ "$(docker images -q 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest)" ]; then
+              docker rmi -f 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest || true
+            fi
+
+            docker pull 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
+
+            docker run -d --name entrytracker \
+              --network entryTracker-network \
+              -e DB_HOST=mysql \
+              -e DB_USER=root \
+              -e DB_PASSWORD=password \
+              -e DB_NAME=app_db \
+              -p 80:5000 \
+              255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
