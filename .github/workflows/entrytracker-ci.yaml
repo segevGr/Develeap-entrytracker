@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+paths-ignore:
+  - "README.md"
+
 jobs:
   building_and_unit_testing:
     runs-on: ubuntu-latest

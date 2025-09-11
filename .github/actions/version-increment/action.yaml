@@ -1,5 +1,6 @@
 name: Version Increment
 description: Retries a shell command multiple times until success
+author: Segev Grotas
 
 outputs:
   new_tag:

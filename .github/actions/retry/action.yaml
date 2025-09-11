@@ -1,5 +1,6 @@
 name: Retry Action
 description: Retries a shell command multiple times until success
+author: Segev Grotas
 
 inputs:
   command:
