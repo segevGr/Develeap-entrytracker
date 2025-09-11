@@ -10,6 +10,7 @@ runs:
   using: composite
   steps:
     - shell: bash
+      id: increment
       run: |
         git fetch --tags
         latest_tag=$(git tag -l "v*" | sort -V | tail -n 1)
