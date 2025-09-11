@@ -1,25 +1,25 @@
-name: "Retry Action"
-description: "Retries a shell command multiple times until success"
+name: Retry Action
+description: Retries a shell command multiple times until success
 
 inputs:
   command:
-    description: "The shell command to run"
+    description: The shell command to run
     required: true
   max_attempts:
-    description: "Maximum number of attempts"
+    description: Maximum number of attempts
     required: true
-    default: "3"
+    default: 3
   retry_wait_seconds:
-    description: "Seconds to wait between retries"
+    description: Seconds to wait between retries
     required: true
-    default: "10"
+    default: 10
   timeout_seconds:
-    description: "Maximum number of seconds to allow each attempt to run"
+    description: Maximum number of seconds to allow each attempt to run
     required: true
-    default: "10"
+    default: 10
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - shell: bash
       run: |

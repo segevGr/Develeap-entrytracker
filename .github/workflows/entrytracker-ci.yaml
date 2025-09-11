@@ -5,6 +5,9 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   building_and_unit_testing:
     runs-on: ubuntu-latest
@@ -28,6 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Packaging E2E Testing and Deploy
     needs: building_and_unit_testing
+    outputs:
+      new_tag: ${{steps.version.outputs.new_tag}}
+
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -40,7 +46,7 @@ jobs:
           context: .
           push: false
           load: true
-          tags: entrytracker:latest
+          tags: entrytracker:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -60,6 +66,10 @@ jobs:
       - name: cleanup
         run: docker compose down
 
+      - name: fetch tag
+        id: version
+        uses: ./.github/actions/version-increment
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -71,14 +81,19 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Run push command
+        env:
+          TAG: ${{steps.version.outputs.new_tag}}
         run: |
-          docker tag entrytracker:latest 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
-          docker push 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest
+          docker tag entrytracker:test 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
+          docker push 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
 
   # publish:
   #   runs-on: ubuntu-latest
   #   name: Publish
   #   needs: packaging_e2e_testing_and_deploy
+  #   env:
+  #     Tag: ${{steps.version.outputs.new_tag}}
+
   #   steps:
   #     - name: checkout
   #       uses: actions/checkout@v4
@@ -101,7 +116,7 @@ jobs:
   #         script: |
   #           docker compose -f docker-compose.yml down || true
 
-  #           docker images -q 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:latest \
+  #           docker images -q 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG \
   #             | xargs -r docker rmi -f || true
 
   #           aws ecr get-login-password --region ap-south-1 \
@@ -110,3 +125,8 @@ jobs:
   #           docker compose -f docker-compose.yml pull
 
   #           docker compose -f docker-compose.yml up -d
+
+  #     - name: push new version to github
+  #       run: |
+  #         git tag $TAG
+  #         git push origin $TAG
