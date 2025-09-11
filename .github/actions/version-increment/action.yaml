@@ -4,12 +4,12 @@ description: Retries a shell command multiple times until success
 outputs:
   new_tag:
     description: The new version tag
+    value: ${{ steps.increment.outputs.new_tag }}
 
 runs:
   using: composite
   steps:
     - shell: bash
-      id: increment_version
       run: |
         git fetch --tags
         latest_tag=$(git tag -l "v*" | sort -V | tail -n 1)
