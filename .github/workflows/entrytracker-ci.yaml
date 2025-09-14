@@ -49,7 +49,7 @@ jobs:
           context: .
           push: false
           load: true
-          tags: entrytracker:test
+          tags: entrytracker:temp
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -87,7 +87,7 @@ jobs:
         env:
           TAG: ${{steps.version.outputs.new_tag}}
         run: |
-          docker tag entrytracker:test 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
+          docker tag entrytracker:temp 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
           docker push 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
 
   # publish:

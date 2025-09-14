@@ -1,8 +1,8 @@
 services:
   app:
+    image: entrytracker:temp
     build:
       context: .
-    image: entrytracker:latest
     ports:
       - "80:5000"
     networks:
