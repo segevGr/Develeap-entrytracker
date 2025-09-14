@@ -3,13 +3,12 @@ name: entrytracker-ci
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "README.md"
   workflow_dispatch:
 
 permissions:
   contents: write
-
-paths-ignore:
-  - "README.md"
 
 jobs:
   building_and_unit_testing:
