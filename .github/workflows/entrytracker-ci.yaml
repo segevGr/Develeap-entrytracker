@@ -100,19 +100,19 @@ jobs:
       Tag: ${{ needs.packaging_e2e_testing_and_deploy.outputs.new_tag }}
 
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: upload docker compose to EC2
+      - name: Upload docker compose to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "/compose.yaml"
-          target: "~"
+          source: "compose.yaml"
+          target: "~/compose.yaml"
 
-      - name: connection with ssh to ec2
+      - name: Connection with ssh to ec2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -144,7 +144,7 @@ jobs:
             sed -i "s|entrytracker:temp|${{ secrets.ECR_URL }}:${Tag}|g" ~/compose.yaml
             docker compose -f ~/compose.yaml up -d
 
-      # - name: push new version to github
+      # - name: Push new version to github
       #   run: |
       #     git tag $TAG
       #     git push origin $TAG
