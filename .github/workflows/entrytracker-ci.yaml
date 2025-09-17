@@ -42,6 +42,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - uses: docker/setup-buildx-action@v3
 
@@ -169,8 +172,8 @@ jobs:
 
       - name: Push new version to github
         run: |
-          git tag $TAG
-          git push origin $TAG
+          git tag ${{ env.Tag }}
+          git push origin ${{ env.Tag }}
 
   notify:
     runs-on: ubuntu-latest
@@ -217,7 +220,7 @@ jobs:
           # username: ${{ secrets.SMTP_USER }}
           # password: ${{ secrets.SMTP_PASS }}
           subject: "Workflow ${{ steps.result.outputs.workflow_status }}"
-          to: ${{ github.event.pusher.email }}
+          to: ${{ github.event.pusher.email }},segev.grotas@gmail.com
           from: "GitHub Actions joana.nolan74@ethereal.email"
           # from: "GitHub Actions <${{ secrets.SMTP_USER }}>"
           body: |
