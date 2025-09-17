@@ -37,7 +37,7 @@ jobs:
     name: Packaging E2E Testing and Deploy
     needs: building_and_unit_testing
     outputs:
-      new_tag: ${{steps.version.outputs.new_tag}}
+      new_tag: ${{ steps.version.outputs.new_tag }}
 
     steps:
       - name: Checkout
