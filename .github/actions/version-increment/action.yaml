@@ -15,7 +15,7 @@ runs:
       run: |
         git fetch --tags
 
-        current_tag=$(git tag --points-at HEAD | grep '^v' | sort -V | tail -n 1)
+        current_tag=$(git tag --points-at HEAD | { grep '^v' || true; } | sort -V | tail -n 1)
         if [ -n "$current_tag" ]; then
           new_tag="$current_tag"
           echo "Tag already exists on HEAD, using $current_tag"
