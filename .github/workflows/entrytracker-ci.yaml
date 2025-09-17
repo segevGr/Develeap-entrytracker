@@ -75,6 +75,9 @@ jobs:
         id: version
         uses: ./.github/actions/version-increment
 
+      - name: Debug new_tag
+        run: echo "New tag is ${{ steps.version.outputs.new_tag }}"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
