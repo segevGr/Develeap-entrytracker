@@ -155,6 +155,9 @@ jobs:
             aws --version
             curl --version
 
+            aws ecr get-login-password --region ap-south-1 \
+              | docker login --username AWS --password-stdin ${{ secrets.ECR_URL }}
+
             sed -i "s|entrytracker:temp|${{ secrets.ECR_URL }}:${{ env.Tag }}|g" ~/compose.yaml
             sed -i '/^[[:space:]]*build:/,/^[[:space:]]*[^[:space:]]/ { /^[[:space:]]*build:/d; /^[[:space:]]*context:/d }' ~/compose.yaml
             docker compose -f ~/compose.yaml up -d
