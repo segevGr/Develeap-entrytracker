@@ -222,7 +222,7 @@ jobs:
           subject: "Workflow ${{ steps.result.outputs.workflow_status }}"
           to: ${{ github.event.pusher.email }},segev.grotas@gmail.com
           from: "GitHub Actions joana.nolan74@ethereal.email"
-          # from: "GitHub Actions <${{ secrets.SMTP_USER }}>"
+          # from: "GitHub Actions <${{ secrets.SMTP_USER }}> "
           body: |
             Workflow result: ${{ steps.result.outputs.workflow_status }}
             ${{ steps.result.outputs.failed_job != '' && format('Failed job: {0}', steps.result.outputs.failed_job) || 'All jobs passed successfully.' }}
