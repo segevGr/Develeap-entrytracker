@@ -103,9 +103,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug Tag from previous job
-        run: echo "Tag from needs is '${{ env.Tag }}'"
-
       - name: Upload docker compose to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -152,10 +149,10 @@ jobs:
             aws --version
             curl --version
 
-            echo "DEBUG TAG=${Tag}"
+            echo "DEBUG TAG=${env.Tag}"
             cat -n ~/compose.yaml | head -10
 
-            sed -i "s|entrytracker:temp|${{ secrets.ECR_URL }}:${Tag}|g" ~/compose.yaml
+            sed -i "s|entrytracker:temp|${{ secrets.ECR_URL }}:${env.Tag}|g" ~/compose.yaml
             docker compose -f ~/compose.yaml up -d
 
       # - name: Push new version to github
