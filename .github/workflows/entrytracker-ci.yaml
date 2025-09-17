@@ -136,6 +136,10 @@ jobs:
               sudo apt-get install -y curl
             fi
 
+            if ! docker compose version &> /dev/null; then
+              sudo apt-get install -y docker-compose-plugin
+            fi
+
             docker --version
             docker compose version
             aws --version
