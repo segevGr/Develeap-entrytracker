@@ -174,10 +174,15 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
+    name: Notify
     needs:
       [building_and_unit_testing, packaging_e2e_testing_and_deploy, publish]
-    name: Notify
+    env:
+      BUILD_RESULT: ${{ needs.building_and_unit_testing.result }}
+      DEPLOY_RESULT: ${{ needs.packaging_e2e_testing_and_deploy.result }}
+      PUBLISH_RESULT: ${{ needs.publish.result }}
     if: always()
+
     steps:
       - name: Detect failure cause
         id: result
@@ -186,25 +191,16 @@ jobs:
           failed=""
           readable=""
 
-          for job in building_and_unit_testing packaging_e2e_testing_and_deploy publish; do
-            result=$(eval echo '${{ needs.'"$job"'.result }}')
-            if [ "$result" = "failure" ]; then
-              status="failure"
-              failed="$job"
-              case "$job" in
-                building_and_unit_testing)
-                  readable="Building & Unit Testing"
-                  ;;
-                packaging_e2e_testing_and_deploy)
-                  readable="Packaging, E2E Testing & Deploy"
-                  ;;
-                publish)
-                  readable="Publish"
-                  ;;
-              esac
-              break
-            fi
-          done
+          if [ "$BUILD_RESULT" = "failure" ]; then
+            status="failure"
+            readable="Building & Unit Testing"
+          elif [ "$DEPLOY_RESULT" = "failure" ]; then
+            status="failure"
+            readable="Packaging, E2E Testing & Deploy"
+          elif [ "$PUBLISH_RESULT" = "failure" ]; then
+            status="failure"
+            readable="Publish"
+          fi
 
           echo "workflow_status=$status" >> $GITHUB_OUTPUT
           echo "failed_job=$readable" >> $GITHUB_OUTPUT
