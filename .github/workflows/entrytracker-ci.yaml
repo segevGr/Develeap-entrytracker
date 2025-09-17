@@ -15,19 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     name: Building and Unit Testing
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: install dependencies
+      - name: Install dependencies
         run: pip install --no-cache-dir -r requirements.txt
 
-      - name: run app
+      - name: Run app
         run: python app.py &
 
       - name: Testing
         uses: ./.github/actions/retry
         with:
           command: curl -s http://localhost:5000/ | grep current_entry
+
+      - name: Cleanup
+        run: pkill -f "python app.py" || true
 
   packaging_e2e_testing_and_deploy:
     runs-on: ubuntu-latest
@@ -37,7 +40,7 @@ jobs:
       new_tag: ${{steps.version.outputs.new_tag}}
 
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
@@ -65,10 +68,10 @@ jobs:
         with:
           command: curl -s http://localhost:80/ | grep previous_entries
 
-      - name: cleanup
+      - name: Cleanup
         run: docker compose down
 
-      - name: fetch tag
+      - name: Fetch tag
         id: version
         uses: ./.github/actions/version-increment
 
@@ -86,49 +89,64 @@ jobs:
         env:
           TAG: ${{steps.version.outputs.new_tag}}
         run: |
-          docker tag entrytracker:temp 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
-          docker push 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG
+          docker tag entrytracker:temp ${{ secrets.ECR_URL }}:$TAG
+          docker push ${{ secrets.ECR_URL }}:$TAG
 
-  # publish:
-  #   runs-on: ubuntu-latest
-  #   name: Publish
-  #   needs: packaging_e2e_testing_and_deploy
-  #   env:
-  #     Tag: ${{steps.version.outputs.new_tag}}
+  publish:
+    runs-on: ubuntu-latest
+    name: Publish
+    needs: packaging_e2e_testing_and_deploy
+    env:
+      Tag: ${{ needs.packaging_e2e_testing_and_deploy.outputs.new_tag }}
 
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
 
-  #     - name: upload docker compose to EC2
-  #       uses: appleboy/scp-action@v0.1.7
-  #       with:
-  #         host: ${{ secrets.EC2_HOST }}
-  #         username: ${{ secrets.EC2_USER }}
-  #         key: ${{ secrets.EC2_SSH_KEY }}
-  #         source: "/compose.yaml"
-  #         target: "~"
+      - name: upload docker compose to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "/compose.yaml"
+          target: "~"
 
-  #     - name: connection with ssh to ec2
-  #       uses: appleboy/ssh-action@v1.0.0
-  #       with:
-  #         host: ${{ secrets.EC2_HOST }}
-  #         username: ${{ secrets.EC2_USER }}
-  #         key: ${{ secrets.EC2_SSH_KEY }}
-  #         script: |
-  #           docker compose -f docker-compose.yml down || true
+      - name: connection with ssh to ec2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt-get update -y
 
-  #           docker images -q 255731431095.dkr.ecr.ap-south-1.amazonaws.com/github-actions/entrytracker:$TAG \
-  #             | xargs -r docker rmi -f || true
+            if ! command -v docker &> /dev/null; then
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sh get-docker.sh
+            fi
 
-  #           aws ecr get-login-password --region ap-south-1 \
-  #             | docker login --username AWS --password-stdin 255731431095.dkr.ecr.ap-south-1.amazonaws.com
+            if ! command -v aws &> /dev/null; then
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -o awscliv2.zip
+              sudo ./aws/install
+            fi
 
-  #           docker compose -f docker-compose.yml pull
+            if ! command -v curl &> /dev/null; then
+              sudo apt-get install -y curl
+            fi
 
-  #           docker compose -f docker-compose.yml up -d
+            docker --version
+            docker compose version
+            aws --version
+            curl --version
 
-  #     - name: push new version to github
-  #       run: |
-  #         git tag $TAG
-  #         git push origin $TAG
+            sed -i "s|entrytracker:temp|${{ secrets.ECR_URL }}:${Tag}|g" ~/compose.yaml
+            docker compose -f ~/compose.yaml up -d
+
+      # - name: push new version to github
+      #   run: |
+      #     git tag $TAG
+      #     git push origin $TAG
+
+  # Report -> email/slack

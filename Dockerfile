@@ -10,4 +10,7 @@ COPY app.py /app/
 
 EXPOSE 5000
 
-ENTRYPOINT ["python", "app.py"]
+RUN useradd -m appuser
+USER appuser
+
+CMD ["python", "app.py"]
