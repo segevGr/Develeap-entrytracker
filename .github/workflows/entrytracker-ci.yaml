@@ -162,7 +162,7 @@ jobs:
             sed -i '/^[[:space:]]*build:/,/^[[:space:]]*[^[:space:]]/ { /^[[:space:]]*build:/d; /^[[:space:]]*context:/d }' ~/compose.yaml
 
             if docker network inspect entryTracker-network >/dev/null 2>&1; then
-              sed -i '/^networks:/a\  entryTracker-network:\n    external: true' ~/compose.yaml
+              sed -i '/entryTracker-network:/,/^[[:space:]]*[^[:space:]]/c\  entryTracker-network:\n    external: true' ~/compose.yaml
             fi
 
             docker compose -f ~/compose.yaml up -d
