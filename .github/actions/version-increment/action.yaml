@@ -13,7 +13,7 @@ runs:
     - shell: bash
       id: increment
       run: |
-        git fetch --tags
+        git fetch --tags --force
 
         current_tag=$(git tag --points-at HEAD | { grep '^v' || true; } | sort -V | tail -n 1)
         if [ -n "$current_tag" ]; then
