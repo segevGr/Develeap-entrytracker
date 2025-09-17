@@ -14,17 +14,25 @@ runs:
       id: increment
       run: |
         git fetch --tags
-        latest_tag=$(git tag -l "v*" | sort -V | tail -n 1)
 
-        if [ -z "$latest_tag" ]; then
-          new_tag="v1.0.0"
+        current_tag=$(git tag --points-at HEAD | grep '^v' | sort -V | tail -n 1)
+        if [ -n "$current_tag" ]; then
+          new_tag="$current_tag"
+          echo "Tag already exists on HEAD, using $current_tag"
         else
-          major=$(echo $latest_tag | cut -d '.' -f 1 | sed 's/v//')
-          minor=$(echo $latest_tag | cut -d '.' -f 2)
-          patch=$(echo $latest_tag | cut -d '.' -f 3)
-          patch=$((patch + 1))
-          new_tag="v${major}.${minor}.${patch}"
+          latest_tag=$(git tag -l "v*" | sort -V | tail -n 1)
+
+          if [ -z "$latest_tag" ]; then
+            new_tag="v1.0.0"
+          else
+            major=$(echo $latest_tag | cut -d '.' -f 1 | sed 's/v//')
+            minor=$(echo $latest_tag | cut -d '.' -f 2)
+            patch=$(echo $latest_tag | cut -d '.' -f 3)
+            patch=$((patch + 1))
+            new_tag="v${major}.${minor}.${patch}"
+          fi
+
+          echo "Generated new version tag: $new_tag"
         fi
 
-        echo "New version tag: $new_tag"
         echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
