@@ -110,7 +110,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "compose.yaml"
-          target: "~/compose.yaml"
+          target: "~"
 
       - name: Connection with ssh to ec2
         uses: appleboy/ssh-action@v1.0.0
@@ -137,7 +137,11 @@ jobs:
             fi
 
             if ! docker compose version &> /dev/null; then
-              sudo apt-get install -y docker-compose-plugin
+              DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+              mkdir -p $DOCKER_CONFIG/cli-plugins
+              curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 \
+                -o $DOCKER_CONFIG/cli-plugins/docker-compose
+              chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
             fi
 
             docker --version
