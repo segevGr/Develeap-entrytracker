@@ -32,5 +32,5 @@ runs:
           echo "Attempt $i failed, retrying in ${{ inputs.retry_wait_seconds }}s..."
           sleep ${{ inputs.retry_wait_seconds }}
         done
-        echo "All ${ { inputs.max_attempts }} attempts failed"
+        echo "All ${{ inputs.max_attempts }} attempts failed"
         exit 1
