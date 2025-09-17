@@ -3,8 +3,6 @@ services:
     image: entrytracker:temp
     build:
       context: .
-    ports:
-      - "80:5000"
     networks:
       - entryTracker-network
     environment:
@@ -28,6 +26,23 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:stable
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    networks:
+      - entryTracker-network
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 10s
+      timeout: 3s
       retries: 5
 
 

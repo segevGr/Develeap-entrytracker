@@ -66,6 +66,11 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: docker compose up -d
 
+      - name: Wait for Nginx health
+        uses: ./.github/actions/retry
+        with:
+          command: curl -s http://localhost:80/health | grep ok
+
       - name: Testing
         uses: ./.github/actions/retry
         with:
