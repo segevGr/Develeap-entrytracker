@@ -216,18 +216,13 @@ jobs:
       - name: Send email
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.ethereal.email
-          server_port: 587
-          username: joana.nolan74@ethereal.email
-          password: XpwFBJS4nPNhpXS38z
-          # server_address: smtp.gmail.com
-          # server_port: 465
-          # username: ${{ secrets.SMTP_USER }}
-          # password: ${{ secrets.SMTP_PASS }}
+          server_address: ${{ secrets.SMTP_ADDRESS }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
           subject: "Workflow ${{ steps.result.outputs.workflow_status }}"
           to: ${{ github.event.pusher.email }},segev.grotas@gmail.com
-          from: "GitHub Actions joana.nolan74@ethereal.email"
-          # from: "GitHub Actions <${{ secrets.SMTP_USER }}> "
+          from: "GitHub Actions <${{ secrets.SMTP_USER }}> "
           body: |
             Workflow result: ${{ steps.result.outputs.workflow_status }}
             ${{ steps.result.outputs.failed_job != '' && format('Failed job: {0}', steps.result.outputs.failed_job) || 'All jobs passed successfully.' }}
