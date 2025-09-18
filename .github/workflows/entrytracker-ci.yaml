@@ -32,9 +32,9 @@ jobs:
       - name: Cleanup
         run: pkill -f "python app.py" || true
 
-  packaging_e2e_testing_and_deploy:
+  packaging_e2e_testing_and_publish:
     runs-on: ubuntu-latest
-    name: Packaging E2E Testing and Deploy
+    name: Packaging E2E Testing and Publish
     needs: building_and_unit_testing
     outputs:
       new_tag: ${{ steps.version.outputs.new_tag }}
@@ -100,12 +100,12 @@ jobs:
           docker tag entrytracker:temp ${{ secrets.ECR_URL }}:$TAG
           docker push ${{ secrets.ECR_URL }}:$TAG
 
-  publish:
+  deploy:
     runs-on: ubuntu-latest
-    name: Publish
-    needs: packaging_e2e_testing_and_deploy
+    name: Deploy
+    needs: packaging_e2e_testing_and_publish
     env:
-      Tag: ${{ needs.packaging_e2e_testing_and_deploy.outputs.new_tag }}
+      Tag: ${{ needs.packaging_e2e_testing_and_publish.outputs.new_tag }}
 
     steps:
       - name: Checkout
