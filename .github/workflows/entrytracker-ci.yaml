@@ -135,19 +135,27 @@ jobs:
           script: |
             sudo apt-get update -y
 
+            if ! command -v curl &> /dev/null; then
+              sudo apt-get install -y curl
+            fi
+
+            if ! command -v unzip &> /dev/null; then
+              sudo apt-get install -y unzip
+            fi
+
             if ! command -v docker &> /dev/null; then
               curl -fsSL https://get.docker.com -o get-docker.sh
               sh get-docker.sh
+            fi
+
+            if [ -S /var/run/docker.sock ]; then
+              sudo chmod 666 /var/run/docker.sock
             fi
 
             if ! command -v aws &> /dev/null; then
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip -o awscliv2.zip
               sudo ./aws/install
-            fi
-
-            if ! command -v curl &> /dev/null; then
-              sudo apt-get install -y curl
             fi
 
             if ! docker compose version &> /dev/null; then
