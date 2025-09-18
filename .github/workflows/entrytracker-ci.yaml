@@ -192,11 +192,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Notify
     needs:
-      [building_and_unit_testing, packaging_e2e_testing_and_deploy, publish]
+      [building_and_unit_testing, packaging_e2e_testing_and_publish, deploy]
     env:
       BUILD_RESULT: ${{ needs.building_and_unit_testing.result }}
-      DEPLOY_RESULT: ${{ needs.packaging_e2e_testing_and_deploy.result }}
-      PUBLISH_RESULT: ${{ needs.publish.result }}
+      PUBLISH_RESULT: ${{ needs.packaging_e2e_testing_and_publish.result }}
+      DEPLOY_RESULT: ${{ needs.deploy.result }}
     if: always()
 
     steps:
@@ -210,12 +210,12 @@ jobs:
           if [ "$BUILD_RESULT" = "failure" ]; then
             status="failure"
             readable="Building & Unit Testing"
-          elif [ "$DEPLOY_RESULT" = "failure" ]; then
-            status="failure"
-            readable="Packaging, E2E Testing & Deploy"
           elif [ "$PUBLISH_RESULT" = "failure" ]; then
             status="failure"
-            readable="Publish"
+            readable="Packaging, E2E Testing & Publish"
+          elif [ "$DEPLOY_RESULT" = "failure" ]; then
+            status="failure"
+            readable="Deploy"
           fi
 
           echo "workflow_status=$status" >> $GITHUB_OUTPUT
