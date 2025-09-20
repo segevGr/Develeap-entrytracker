@@ -2,30 +2,44 @@
 
 ## Overview
 
-This project implements a complete CI/CD pipeline for the EntryTracker application:
+Complete CI/CD pipeline for EntryTracker:
 
-- Python Flask app with MySQL and Nginx (3-tier architecture).
-- GitHub Actions pipeline:
+- Flask + MySQL + Nginx (3-tier)
+- GitHub Actions:
   - Build + Unit tests
   - E2E tests with Docker Compose
-  - Automatic Docker image tagging and push to Amazon ECR
-  - Deployment to Amazon EC2 with Docker Compose
+  - Push Docker image to Amazon ECR
+  - Deploy to EC2 with Docker Compose
 - Extras:
-  - **Custom GitHub Actions**:
-    - `version-increment` → auto version tagging (located in `.github/actions/version-increment`)
-    - `retry` → retry logic for flaky checks (located in `.github/actions/retry`)
-  - Email notifications on pipeline status
+  - Custom Actions (`version-increment`, `retry`)
+  - Email notifications
 
-## Required GitHub Secrets
+## Required Secrets
 
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` – AWS credentials (ECR + EC2 access)
-- `ECR_URL` – Your ECR repository URL
-- `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` – SSH connection details for EC2
-- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` – MySQL environment variables
-- `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` – SMTP configuration for email notifications
+| Secret                                                | Purpose                     |
+| ----------------------------------------------------- | --------------------------- |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`          | AWS credentials (ECR + EC2) |
+| `ECR_URL`                                             | Amazon ECR repository URL   |
+| `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`                 | EC2 SSH connection details  |
+| `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`        | MySQL configuration         |
+| `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | SMTP for notifications      |
 
-## First Run
+## Setup Notes ⚠️
 
-- A brand-new EC2 instance (Ubuntu) will work out-of-the-box.
-- The workflow installs all dependencies automatically (Docker, Docker Compose, AWS CLI, curl).
-- Simply push to the `main` branch or trigger the workflow manually → the app will be deployed to EC2.
+This will **not work out-of-the-box**. You must:
+
+1. **Create a new EC2 instance**
+
+   - Open **ports 22 (SSH)** and **80 (HTTP)** in the security group
+   - Create your own **SSH key pair** and set `EC2_SSH_KEY`
+   - Attach an **IAM role** with `AmazonEC2ContainerRegistryReadOnly` policy
+
+2. **Update GitHub Secrets**
+
+   - Replace all EC2, DB, ECR and SMTP secrets with your own values
+
+3. **Configure Email**
+   - This project uses [Ethereal Email](https://ethereal.email/) (test SMTP)
+   - Generate new credentials and set `SMTP_*` secrets
+
+Once the environment is ready → push to `main` or manually trigger the workflow.
