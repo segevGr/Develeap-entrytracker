@@ -12,17 +12,19 @@ Complete CI/CD pipeline for EntryTracker:
   - Deploy to EC2 with Docker Compose
 - Extras:
   - Custom Actions (`version-increment`, `retry`)
+    > ℹ **Note:** Automatically bumps patch version only if no tag exists on HEAD.  
+    > For major/minor bumps, just create the tag manually before pushing.
   - Email notifications
 
 ## Required Secrets
 
-| Secret                                                | Purpose                     |
-| ----------------------------------------------------- | --------------------------- |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`          | AWS credentials (ECR + EC2) |
-| `ECR_URL`                                             | Amazon ECR repository URL   |
-| `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`                 | EC2 SSH connection details  |
-| `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`        | MySQL configuration         |
-| `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | SMTP for notifications      |
+| Secret                                                | Purpose                                 |
+| ----------------------------------------------------- | --------------------------------------- |
+| `AWS_ECR_ROLE`                                        | ARN of IAM Role assumed via GitHub OIDC |
+| `ECR_URL`                                             | Amazon ECR repository URL               |
+| `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`                 | EC2 SSH connection details              |
+| `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`        | MySQL configuration                     |
+| `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | SMTP for notifications                  |
 
 ## Setup Notes ⚠️
 
