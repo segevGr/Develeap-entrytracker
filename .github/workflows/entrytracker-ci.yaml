@@ -71,6 +71,13 @@ jobs:
         with:
           command: curl -s http://localhost:80/health | grep ok
 
+      - name: Wait for MySQL
+        uses: ./.github/actions/retry
+        with:
+          command: docker exec $(docker ps -q --filter name=mysql) mysqladmin ping -h localhost
+          max_attempts: 5
+          retry_wait_seconds: 15
+
       - name: Debug nginx response
         run: |
           curl -v http://localhost:80/ || true
