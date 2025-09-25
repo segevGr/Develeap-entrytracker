@@ -66,11 +66,6 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: docker compose up -d
 
-      - name: Debug env inside app
-        run: |
-          echo "Printing env vars from app container:"
-          docker exec $(docker ps -q --filter name=app) env | grep DB_
-
       - name: Wait for MySQL
         uses: ./.github/actions/retry
         with:
@@ -78,23 +73,10 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 15
 
-      - name: Debug MySQL connection
-        run: |
-          docker exec $(docker ps -q --filter name=app) \
-            sh -c "apt-get update && apt-get install -y default-mysql-client && \
-            mysql -h \$DB_HOST -u \$DB_USER -p\$DB_PASSWORD -e 'SELECT DATABASE();'"
-
       - name: Wait for Nginx health
         uses: ./.github/actions/retry
         with:
           command: curl -s http://localhost:80/health | grep ok
-
-      - name: Debug nginx response
-        run: |
-          curl -v http://localhost:80/ || true
-          docker ps
-          docker logs $(docker ps -q --filter "name=app") || true
-          docker logs $(docker ps -q --filter "name=mysql") || true
 
       - name: Testing
         uses: ./.github/actions/retry
