@@ -18,6 +18,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -44,7 +46,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-
 
 networks:
   entryTracker-network:
