@@ -71,6 +71,13 @@ jobs:
         with:
           command: curl -s http://localhost:80/health | grep ok
 
+      - name: Debug nginx response
+        run: |
+          curl -v http://localhost:80/ || true
+          docker ps
+          docker logs $(docker ps -q --filter "name=app") || true
+          docker logs $(docker ps -q --filter "name=mysql") || true
+
       - name: Testing
         uses: ./.github/actions/retry
         with:
