@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths-ignore:
       - "README.md"
+      - "Diagram.png"
   workflow_dispatch:
 
 permissions:
