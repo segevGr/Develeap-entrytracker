@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   building_and_unit_testing:
@@ -117,6 +118,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Backup previous compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            if [ -f ~/compose.yaml ]; then
+              cp ~/compose.yaml ~/compose_previous.yaml
+            fi
+
       - name: Upload docker compose to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -193,6 +205,21 @@ jobs:
         run: |
           git tag ${{ env.Tag }}
           git push origin ${{ env.Tag }}
+
+      - name: Rollback if deploy fails
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Rolling back to previous version..."
+            if [ -f ~/compose_previous.yaml ]; then
+              docker compose -f ~/compose_previous.yaml up -d
+            else
+              echo "No previous compose.yaml found, nothing to rollback to."
+            fi
 
   notify:
     runs-on: ubuntu-latest
